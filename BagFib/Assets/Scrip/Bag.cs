@@ -25,19 +25,19 @@ public class Bag : MonoBehaviour
             }
         }
 
-        //int result = TotalValue(0, maxWeight);
-        //Debug.Log("Max value = " + result);
+        int result = TotalValue(0, maxWeight);
+        Debug.Log("Max value = " + result);
         
         GetSelectedItems(0, maxWeight);
 
         foreach (var item in selectedItems)
         {
             StartCoroutine(MoveToBag(item.transform, transform.position));
-            Debug.Log(item.name + " (W: " + item.weight + ", V: " + item.value + ")");
+            Debug.Log(item.name);
         }
     }
 
-    /*public int TotalValue(int i, int remainingWeight)
+    public int TotalValue(int i, int remainingWeight)
     {
         if (i == itemList.Count || remainingWeight == 0)
         {
@@ -60,7 +60,7 @@ public class Bag : MonoBehaviour
         memo[i, remainingWeight] = Mathf.Max(take, skip);
         return memo[i, remainingWeight];
         
-    }*/
+    }
     
     private void GetSelectedItems(int i, int remainingWeight)
     {
