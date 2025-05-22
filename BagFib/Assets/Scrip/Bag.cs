@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -9,6 +10,8 @@ public class Bag : MonoBehaviour
 
     private int[,] memo;
     
+    private List<Item> selectedItems = new List<Item>();
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -18,12 +21,20 @@ public class Bag : MonoBehaviour
         {
             for (int w = 0; w <= maxWeight; w++)
             {
-                memo[i, w] = -1;
+                memo[i, w] = 0;
             }
         }
 
         int result = TotalValue(0, maxWeight);
         Debug.Log("Max value = " + result);
+        
+        GetSelectedItems(0, maxWeight);
+
+        foreach (var item in selectedItems)
+        {
+            StartCoroutine(MoveToBag(item.transform, transform.position));
+            Debug.Log(item.name + " (W: " + item.weight + ", V: " + item.value + ")");
+        }
     }
 
     public int TotalValue(int i, int remainingWeight)
@@ -33,7 +44,7 @@ public class Bag : MonoBehaviour
             return 0;
         }
 
-        if (memo[i, remainingWeight] != -1)
+        if (memo[i, remainingWeight] != 0)
         {
             return memo[i, remainingWeight];
         }
@@ -47,9 +58,43 @@ public class Bag : MonoBehaviour
         }
         
         memo[i, remainingWeight] = Mathf.Max(take, skip);
-        
-        //Debug.Log(itemList[i].name);
         return memo[i, remainingWeight];
         
+    }
+    
+    private void GetSelectedItems(int i, int remainingWeight)
+    {
+        while (i < itemList.Count && remainingWeight > 0)
+        {
+            if (itemList[i].weight <= remainingWeight)
+            {
+                int take = itemList[i].value + memo[i + 1, remainingWeight - itemList[i].weight];
+                int skip = memo[i + 1, remainingWeight];
+
+                if (take >= skip)
+                {
+                    selectedItems.Add(itemList[i]);
+                    remainingWeight -= itemList[i].weight;
+                    i++;
+                    continue;
+                }
+            }
+            i++;
+        }
+    }
+
+    IEnumerator MoveToBag(Transform itemTransform, Vector3 bagPosition)
+    {
+        float duration = 1f;
+        float elapsed = 0f;
+        Vector3 startPos = itemTransform.position;
+
+        while (elapsed < duration)
+        {
+            itemTransform.position = Vector3.Lerp(startPos, bagPosition, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        itemTransform.position = bagPosition;
     }
 }
