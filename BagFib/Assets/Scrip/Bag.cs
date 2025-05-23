@@ -8,27 +8,19 @@ public class Bag : MonoBehaviour
     public int maxWeight;
     public List<Item> itemList;
 
-    private int[,] memo;
+    private int[,] dp;
     
     private List<Item> selectedItems = new List<Item>();
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        int n = itemList.Count;
-        memo = new int[n + 1, maxWeight + 1];
-        for (int i = 0; i <= n; i++)
-        {
-            for (int w = 0; w <= maxWeight; w++)
-            {
-                memo[i, w] = 0;
-            }
-        }
-
-        int result = TotalValue(0, maxWeight);
+        int result = TotalValue();
         Debug.Log("Max value = " + result);
         
-        GetSelectedItems(0, maxWeight);
+        
+        
+        GetSelectedItems();
 
         foreach (var item in selectedItems)
         {
@@ -37,49 +29,49 @@ public class Bag : MonoBehaviour
         }
     }
 
-    public int TotalValue(int i, int remainingWeight)
+    public int TotalValue()
     {
-        if (i == itemList.Count || remainingWeight == 0)
-        {
-            return 0;
-        }
+        int n = itemList.Count;
+        
+        dp = new int[n + 1, maxWeight + 1];
 
-        if (memo[i, remainingWeight] != 0)
+        for (int i = 1; i <= n; i++)
         {
-            return memo[i, remainingWeight];
-        }
-        
-        int skip = TotalValue(i +1, remainingWeight);
-
-        int take = 0;
-        if (itemList[i].weight <= remainingWeight)
-        {
-            take = itemList[i].value + TotalValue(i + 1, remainingWeight - itemList[i].weight);
-        }
-        
-        memo[i, remainingWeight] = Mathf.Max(take, skip);
-        return memo[i, remainingWeight];
-        
-    }
-    
-    private void GetSelectedItems(int i, int remainingWeight)
-    {
-        while (i < itemList.Count && remainingWeight > 0)
-        {
-            if (itemList[i].weight <= remainingWeight)
+            for (int j = 0; j <= maxWeight; j++)
             {
-                int take = itemList[i].value + memo[i + 1, remainingWeight - itemList[i].weight];
-                int skip = memo[i + 1, remainingWeight];
-
-                if (take >= skip)
+                if (itemList[i - 1].weight > j)
                 {
-                    selectedItems.Add(itemList[i]);
-                    remainingWeight -= itemList[i].weight;
-                    i++;
-                    continue;
+                    dp[i, j] = dp[i - 1, j];
+                }
+                else
+                {
+                    int chosenI = itemList[i - 1].value + dp[i - 1, j - itemList[i - 1].weight];
+                    
+                    int notChosenI = dp[i - 1, j];
+
+                    dp[i, j] = Mathf.Max(chosenI, notChosenI);
                 }
             }
-            i++;
+        }
+        return dp[n, maxWeight];
+    }
+    
+    private void GetSelectedItems()
+    {
+        selectedItems.Clear();
+
+        int i = itemList.Count;
+        int j = maxWeight;
+
+        while (i > 0 && j > 0)
+        {
+            if (dp[i, j] != dp[i - 1, j])
+            {
+                Item selected = itemList[i - 1];
+                selectedItems.Add(selected);
+                j -= selected.weight;
+            }
+            i--;
         }
     }
 
@@ -95,6 +87,5 @@ public class Bag : MonoBehaviour
             elapsed += Time.deltaTime;
             yield return null;
         }
-        itemTransform.position = bagPosition;
     }
 }
