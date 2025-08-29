@@ -45,11 +45,11 @@ public class Bag : MonoBehaviour
                 }
                 else
                 {
-                    int chosenI = itemList[i - 1].value + dp[i - 1, j - itemList[i - 1].weight];
+                    int takeI = itemList[i - 1].value + dp[i - 1, j - itemList[i - 1].weight];
                     
-                    int notChosenI = dp[i - 1, j];
+                    int nottakeI = dp[i - 1, j];
 
-                    dp[i, j] = Mathf.Max(chosenI, notChosenI);
+                    dp[i, j] = Mathf.Max(takeI, nottakeI);
                 }
             }
         }
